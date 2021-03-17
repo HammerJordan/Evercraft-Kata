@@ -1,100 +1,157 @@
 using System;
 using Xunit;
 using FluentAssertions;
+using FluentAssertions.Common;
 using NSubstitute;
 
 namespace Evercraft.Test
 {
     public class CharacterTests
     {
-        [Fact]
-        public void Name_ShouldBeAssigned()
-        {
-            const string name = "Wizard";
-            var character = new Character() {Name = name};
+        private readonly Character character;
+        private Character enemy;
 
-            character.Name.Should().BeEquivalentTo(name);
-        }
-        
-        [Fact]
-        public void AlignmentType_ShouldBeAssigned()
+        public CharacterTests()
         {
-            var character = new Character {Alignment = AlignmentType.Evil};
+            character = new Character();
+            enemy = new Character();
+        }
 
-            character.Alignment.Should().Be(AlignmentType.Evil);
-        }
-        
         [Fact]
-        public void DefaultCharacter_ShouldHave10ArmorAnd5HP()
+        public void DefaultValues_AreSet()
         {
-            var character = new Character();
-            character.ArmorClass.Should().Be(10);
-            character.HitPoints.Should().Be(5);
-        }
-        
-        [Fact]
-        public void Roll_Returns1To20()
-        {
-            var character = new Character();
-            character.Roll().Roll.Should().BeInRange(1, 20);
-        }
-        [Fact]
-        public void InjectDice_ReturnsDiceValue()
-        {
-            var dice = NSubstitute.Substitute.For<IDice>();
-            dice.Roll().Returns(20);
-            var character = new Character(d20:dice);
+            character.Alignment.IsSameOrEqualTo(AlignmentType.Neutral);
+            character.Name.IsSameOrEqualTo("Hero");
+            character.ArmorClass.IsSameOrEqualTo(10);
+            character.HitPoints.IsSameOrEqualTo(5);
 
-            character.Roll().Roll.Should().Be(20);
+            foreach (var stat in character.StatBlock.Values)
+                stat.Value.Should().Be(10);
         }
-        
+
         [Theory]
-        [InlineData(5,false)]
-        [InlineData(10,true)]
-        [InlineData(11,true)]
-        
-        public void AttackHits_ReturnsTrue_WhenRollMeetsOrBeatArmorClass(int roll, bool result)
+        [InlineData(5, false)]
+        [InlineData(10, true)]
+        [InlineData(11, true)]
+        public void Attack_ReturnsTrueAndTargetTakesDamage_WhenRollMeetsOrBeatArmorClass(int roll, bool result)
         {
-            var character = new Character();
-            var hit = character.AttackHits(new DiceRoll(roll,null));
+            var hit = character.Attack(new DiceRoll(roll, null), enemy);
             hit.Should().Be(result);
+            enemy.HitPoints.Should().Be(result ? 4 : 5);
+        }
 
-        }
         [Fact]
-        public void AttackHits_ReturnsTrue_OnNat20()
+        public void Attack_HitsOnNat20_WhenArmorIsGreaterThen20()
         {
-            var character = new Character();
-            var hit = character.AttackHits(new DiceRoll(20,null));
+            enemy = new Character(armorClass: 22);
+            var hit = character.Attack(new DiceRoll(20, null), enemy);
             hit.Should().BeTrue();
+            enemy.HitPoints.Should().Be(3);
         }
-        
-        [Fact]
-        public void BeAttacked_WhenRollHitsAC_Lose1Life()
-        {
-            var character = new Character();
-            character.BeAttacked(new DiceRoll(10,null));
-            character.HitPoints.Should().Be(4);
-        }
-        
-        [Fact]
-        public void BeAttacked_WhenRollNat20_Lose2Life()
-        {
-            var character = new Character();
-            character.BeAttacked(new DiceRoll(20,null));
-            character.HitPoints.Should().Be(3);
-        }
-        
+
         [Fact]
         public void IsDead_WhenNoLifeLeft()
         {
-            var character = new Character();
-            character.BeAttacked(new DiceRoll(20,null));
-            character.BeAttacked(new DiceRoll(20,null));
-            character.BeAttacked(new DiceRoll(20,null));
-            character.IsDead.Should().BeTrue();
+            enemy.IsDead.Should().BeFalse();
+            character.Attack(new DiceRoll(20, null), enemy);
+            character.Attack(new DiceRoll(20, null), enemy);
+            enemy.IsDead.Should().BeFalse();
+            character.Attack(new DiceRoll(20, null), enemy);
+            enemy.IsDead.Should().BeTrue();
+        }
+
+        [Theory]
+        [InlineData(9, 10, false)]
+        [InlineData(9, 11, false)]
+        [InlineData(9, 12, true)]
+        [InlineData(10, 10, true)]
+        [InlineData(10, 9, false)]
+        [InlineData(5, 20, true)]
+        [InlineData(14, 1, false)]
+        public void Strength_ModifiesAttackRoll(int roll, int strength, bool expected)
+        {
+            character.StatBlock[StatTypes.Strength] = new Stat(strength);
+
+            bool hit = character.Attack(new DiceRoll(roll, null), enemy);
+            hit.Should().Be(expected);
+        }
+        
+        [Theory]
+        [InlineData(10, 1)]
+        [InlineData(12, 2)]
+        [InlineData(14, 3)]
+        [InlineData(20, 6)]
+        [InlineData(8, 1)]
+        [InlineData(1, 1)]
+
+        public void Strength_ModifiesAttackDamage(int strength, int expectedDamageDealt)
+        {
+            character.StatBlock[StatTypes.Strength] = new Stat(strength);
+            int startHp = enemy.HitPoints;
+            
+            character.Attack(new DiceRoll(15, null), enemy);
+            int damageDone = startHp - enemy.HitPoints;
+
+
+            damageDone.Should().Be(expectedDamageDealt);
+        }
+        
+        [Fact]
+        
+        public void Strength_ModifiesAttackDamage_OnCritMinIs1()
+        {
+            const int expectedDamageDealt = 1;
+            character.StatBlock[StatTypes.Strength] = new Stat(1);
+            int startHp = enemy.HitPoints;
+            
+            character.Attack(new DiceRoll(20, null), enemy);
+            int damageDone = startHp - enemy.HitPoints;
+
+            damageDone.Should().Be(expectedDamageDealt);
+        }
+
+        [Theory]
+        [InlineData(10, 10)]
+        [InlineData(12, 11)]
+        [InlineData(20, 15)]
+        [InlineData(1, 5)]
+        public void Dexterity_ModifiesArmorClass(int dexAmount, int expectedArmorClass)
+        {
+            character.StatBlock[StatTypes.Dexterity] = new Stat(dexAmount);
+
+            character.ArmorClass.Should().Be(expectedArmorClass);
+
+        }
+        
+        [Theory]
+        [InlineData(10, 5)]
+        [InlineData(12, 6)]
+        [InlineData(20, 10)]
+        [InlineData(8, 4)]
+        [InlineData(1, 1)]
+        public void Constitution_ModifiesHp_MinOf1(int conAmount, int expectedHp)
+        {
+            character.StatBlock[StatTypes.Constitution] = new Stat(conAmount);
+
+            character.HitPoints.Should().Be(expectedHp);
         }
         
         
+        [Fact]
+        public void Character_GainsXp_OnSuccessfulAttack()
+        {
+            character.XP.Should().Be(0);
+            character.Attack(new DiceRoll(15),enemy);
+            character.XP.Should().Be(10);
+        }
+        
+        [Fact]
+        public void Character_ShouldNotGainXp_OnUnSuccessfulAttack()
+        {
+            character.XP.Should().Be(0);
+            character.Attack(new DiceRoll(8),enemy);
+            character.XP.Should().Be(0);
+        }
         
         
     }

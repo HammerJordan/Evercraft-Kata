@@ -1,55 +1,85 @@
-﻿using System;
-//https://github.com/PuttingTheDnDInTDD/EverCraft-Kata
+﻿//https://github.com/PuttingTheDnDInTDD/EverCraft-Kata
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 namespace Evercraft
 {
     public class Character
     {
-        private readonly IDice d20;
+        private int armorClass;
+        private int hitPoints;
         public string Name { get; set; }
         public AlignmentType Alignment { get; set; }
-        public int ArmorClass { get; private set; }
-        public int HitPoints { get; private set; }
+
+        public int ArmorClass
+        {
+            get => armorClass + StatBlock[StatTypes.Dexterity].Modifier;
+            private set => armorClass = value;
+        }
+
+        public int HitPoints
+        {
+            get => hitPoints + (StatBlock[StatTypes.Constitution].Modifier < -4 ?
+                -4 :
+                StatBlock[StatTypes.Constitution].Modifier);
+            private set => hitPoints = value;
+        }
+
+        public Dictionary<StatTypes, Stat> StatBlock { get; set; }
 
         public bool IsDead => HitPoints <= 0;
+
+        public int XP { get; private set; }
 
         public Character(
             string name = "Hero",
             AlignmentType alignment = AlignmentType.Neutral,
             int armorClass = 10,
-            int hitPoints = 5,
-            IDice d20 = null)
+            int hitPoints = 5)
         {
             Name = name;
             Alignment = alignment;
-            ArmorClass = armorClass;
+            this.armorClass = armorClass;
             HitPoints = hitPoints;
-            this.d20 = d20 ?? new D20();
-        }
+            XP = 0;
 
-        public DiceRoll Roll()
-        {
-            return new DiceRoll(d20.Roll(), null);
+            StatBlock = Enum.GetValues<StatTypes>()
+                .ToDictionary(x => x, _ => new Stat(10));
         }
 
         public bool AttackHits(DiceRoll roll)
         {
-            
-            return roll.Natural20  || roll.Total >= ArmorClass;
+            return roll.IsNatural20 || roll.Total >= ArmorClass;
         }
 
-        public void BeAttacked(DiceRoll roll)
+        public void TakeDamage(int amount)
         {
-            if (!AttackHits(roll))
-                return;
+            HitPoints -= amount;
+        }
+
+        public bool Attack(DiceRoll roll, Character target)
+        {
+            roll.Modifiers.Add(StatBlock[StatTypes.Strength].Modifier);
+
+            if (!target.AttackHits(roll))
+                return false;
+
+            XP += 10;
             
-            if (roll.Natural20)
-            {
-                HitPoints -= 2;
-            }
-            else
-            {
-                HitPoints -= 1;
-            }
+            target.TakeDamage(GetDamage(roll.IsNatural20));
+
+            return true;
+        }
+
+        private int GetDamage(bool crit)
+        {
+            int damage = 1;
+            damage += StatBlock[StatTypes.Strength].Modifier;
+            damage *= crit ? 2 : 1;
+
+            return damage > 0 ? damage : 1;
         }
     }
 }
