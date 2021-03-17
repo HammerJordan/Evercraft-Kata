@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Xunit;
 using Xunit.Extensions;
@@ -8,27 +9,23 @@ namespace Evercraft.Test
 {
     public class StatTests
     {
-        public static List<Tuple<int, int>> values = new List<Tuple<int, int>>();
-
-        public StatTests()
+        public static IEnumerable<object[]> GetData()
         {
             int mod = -5;
-            for (int i = 1; i < 21; i++)
+            foreach (var value in Enumerable.Range(1, 20))
             {
-                if (i % 2 == 0)
+                if (value % 2 == 0)
                     mod++;
-                values.Add(new(i,mod));
+                yield return new object[] {value, mod};
             }
         }
 
-        [Fact]
-        public void StatValue_ReturnsRightModifierValue()
+        [Theory]
+        [MemberData(nameof(GetData))]
+        public void StatValue_ReturnsRightModifierValue(int value, int mod)
         {
-            foreach (var value in values)
-            {
-                Stat s = new Stat(value.Item1);
-                s.Modifier.Should().Be(value.Item2);
-            }
+            Stat s = new Stat(value);
+            s.Modifier.Should().Be(mod);
         }
     }
 }
