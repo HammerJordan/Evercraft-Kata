@@ -47,32 +47,35 @@ namespace Evercraft
             return this;
         }
 
-        public CharacterBuilder SetStat(StatTypes type, int value)
+        public CharacterBuilder SetStrength(int value)
         {
-            switch (type)
-            {
-                case StatTypes.Strength:
-                    Strength = value;
-                    break;
-                case StatTypes.Dexterity:
-                    Dexterity = value;
-                    break;
-                case StatTypes.Constitution:
-                    Constitution = value;
-                    break;
-                case StatTypes.Wisdom:
-                    Wisdom = value;
-                    break;
-                case StatTypes.Intelligence:
-                    Intelligence = value;
-                    break;
-                case StatTypes.Charisma:
-                    Charisma = value;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
-            }
-
+            Strength = value;
+            return this;
+        }
+        
+        public CharacterBuilder SetDexterity(int value)
+        {
+            Dexterity = value;
+            return this;
+        }
+        public CharacterBuilder SetConstitution(int value)
+        {
+            Constitution = value;
+            return this;
+        }
+        public CharacterBuilder SetWisdom(int value)
+        {
+            Wisdom = value;
+            return this;
+        }
+        public CharacterBuilder SetIntelligence(int value)
+        {
+            Strength = value;
+            return this;
+        }
+        public CharacterBuilder SetCharisma(int value)
+        {
+            Strength = value;
             return this;
         }
 

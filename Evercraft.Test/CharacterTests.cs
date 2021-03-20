@@ -10,7 +10,7 @@ namespace Evercraft.Test
     public class CharacterTests
     {
         private const int XP_PER_LEVEL = 1000;
-        
+
         private Character character;
         private Character enemy;
 
@@ -28,8 +28,12 @@ namespace Evercraft.Test
             character.ArmorClass.IsSameOrEqualTo(10);
             character.MaxHitPoints.IsSameOrEqualTo(5);
 
-            foreach (var stat in character.StatBlock.Values)
-                stat.Value.Should().Be(10);
+            character.Strength.Value.Should().Be(10);
+            character.Dexterity.Value.Should().Be(10);
+            character.Constitution.Value.Should().Be(10);
+            character.Wisdom.Value.Should().Be(10);
+            character.Intelligence.Value.Should().Be(10);
+            character.Charisma.Value.Should().Be(10);
         }
 
         [Theory]
@@ -71,12 +75,12 @@ namespace Evercraft.Test
         [InlineData(10, 9, false)]
         [InlineData(5, 20, true)]
         [InlineData(14, 1, false)]
-        public void Strength_ModifiesAttackRoll(int roll, int strength, bool expected)
+        public void Strength_ModifiesAttackRollAndDamage(int roll, int strength, bool shouldHit)
         {
-            character.StatBlock[StatTypes.Strength] = new Stat(strength);
+            character.Strength = new Stat(strength);
 
             bool hit = character.Attack(new DiceRoll(roll, null), enemy);
-            hit.Should().Be(expected);
+            hit.Should().Be(shouldHit);
         }
 
         [Theory]
@@ -88,7 +92,7 @@ namespace Evercraft.Test
         [InlineData(1, 1)]
         public void Strength_ModifiesAttackDamage(int strength, int expectedDamageDealt)
         {
-            character.StatBlock[StatTypes.Strength] = new Stat(strength);
+            character.Strength = new Stat(strength);
             int startHp = enemy.CurrentHitPoints;
 
             character.Attack(new DiceRoll(15, null), enemy);
@@ -101,7 +105,7 @@ namespace Evercraft.Test
         public void Strength_ModifiesAttackDamage_OnCritMinIs1()
         {
             const int expectedDamageDealt = 1;
-            character.StatBlock[StatTypes.Strength] = new Stat(1);
+            character.Strength = new Stat(1);
             int startHp = enemy.CurrentHitPoints;
 
             character.Attack(new DiceRoll(20, null), enemy);
@@ -117,7 +121,7 @@ namespace Evercraft.Test
         [InlineData(1, 5)]
         public void Dexterity_ModifiesArmorClass(int dexAmount, int expectedArmorClass)
         {
-            character.StatBlock[StatTypes.Dexterity] = new Stat(dexAmount);
+            character.Dexterity = new Stat(dexAmount);
 
             character.ArmorClass.Should().Be(expectedArmorClass);
         }
@@ -130,25 +134,21 @@ namespace Evercraft.Test
         [InlineData(1, 1)]
         public void Constitution_ModifiesHp_MinOf1(int conAmount, int expectedHp)
         {
-            character.StatBlock[StatTypes.Constitution] = new Stat(conAmount);
+            character.Constitution = new Stat(conAmount);
 
             character.MaxHitPoints.Should().Be(expectedHp);
         }
 
         [Fact]
-        public void Character_GainsXp_OnSuccessfulAttack()
+        public void Character_ShouldGainXp_OnSuccessfulAttack()
         {
             character.Xp.Should().Be(0);
             character.Attack(new DiceRoll(15), enemy);
             character.Xp.Should().Be(10);
-        }
-
-        [Fact]
-        public void Character_ShouldNotGainXp_OnUnSuccessfulAttack()
-        {
-            character.Xp.Should().Be(0);
-            character.Attack(new DiceRoll(8), enemy);
-            character.Xp.Should().Be(0);
+            character.Attack(new DiceRoll(15), enemy);
+            character.Xp.Should().Be(20);
+            character.Attack(new DiceRoll(9), enemy);
+            character.Xp.Should().Be(20);
         }
 
         [Theory]
@@ -162,7 +162,6 @@ namespace Evercraft.Test
         public void Character_ShouldLevelUpOnXpGain(int xp, int expectedLevel)
         {
             character = new CharacterBuilder().SetXp(xp);
-
             character.Level.Should().Be(expectedLevel);
         }
 
@@ -177,12 +176,12 @@ namespace Evercraft.Test
         public void CharacterHitPoints_ShouldIncreaseBy5EachLevel(int level, int con, int expectedHp)
         {
             character = new CharacterBuilder()
-                .SetStat(StatTypes.Constitution, con)
+                .SetConstitution(con)
                 .SetXp((level - 1) * XP_PER_LEVEL);
 
             character.MaxHitPoints.Should().Be(expectedHp);
         }
-        
+
         [Theory]
         [InlineData(1, 10, 0)]
         [InlineData(1, 1, -5)]
@@ -197,11 +196,10 @@ namespace Evercraft.Test
         public void CharacterAttackRoll_ShouldIncreaseBy1EveryEvenLevel(int level, int strength, int expectedRollMod)
         {
             character = new CharacterBuilder()
-                .SetStat(StatTypes.Strength, strength)
+                .SetStrength(strength)
                 .SetXp((level - 1) * XP_PER_LEVEL);
 
             character.GetAttackRollModifier().Should().Be(expectedRollMod);
-
         }
     }
 }
