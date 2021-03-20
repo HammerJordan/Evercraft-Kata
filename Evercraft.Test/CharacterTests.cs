@@ -34,6 +34,8 @@ namespace Evercraft.Test
             character.Wisdom.Value.Should().Be(10);
             character.Intelligence.Value.Should().Be(10);
             character.Charisma.Value.Should().Be(10);
+
+            character.Level.Should().Be(1);
         }
 
         [Theory]
@@ -177,9 +179,10 @@ namespace Evercraft.Test
         {
             character = new CharacterBuilder()
                 .SetConstitution(con)
-                .SetXp((level - 1) * XP_PER_LEVEL);
+                .SetLevel(level);
 
             character.MaxHitPoints.Should().Be(expectedHp);
+            character.Level.Should().Be(level);
         }
 
         [Theory]
@@ -197,7 +200,7 @@ namespace Evercraft.Test
         {
             character = new CharacterBuilder()
                 .SetStrength(strength)
-                .SetXp((level - 1) * XP_PER_LEVEL);
+                .SetLevel(level);
 
             character.GetAttackRollModifier().Should().Be(expectedRollMod);
         }

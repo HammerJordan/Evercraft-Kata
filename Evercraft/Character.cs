@@ -6,10 +6,11 @@ namespace Evercraft
 {
     public class Character
     {
-        private const int XP_GAIN = 10;
+        protected const int XP_GAIN = 10;
+        public const int XP_PER_LEVEL = 1000;
 
-        private int armorClass;
-        private int maxHitPoints;
+        protected int armorClass;
+        protected int maxHitPoints;
 
         public string Name { get; set; }
         public AlignmentType Alignment { get; set; }
@@ -25,22 +26,23 @@ namespace Evercraft
         public int ArmorClass
         {
             get => armorClass + Dexterity.Modifier;
-            private set => armorClass = value;
+            protected set => armorClass = value;
         }
 
         public int MaxHitPoints
         {
             get => Math.Max(1,
-                maxHitPoints + Constitution.Modifier + ((Level - 1) * 5));
-            private set => maxHitPoints = value;
+                maxHitPoints + GetHitPointModifier()
+                );
+            protected set => maxHitPoints = value;
         }
 
-        public int Damaged { get; private set; }
+        public int Damaged { get; protected set; }
 
         public int CurrentHitPoints => MaxHitPoints - Damaged;
 
         public bool IsDead => CurrentHitPoints <= 0;
-        public int Level => 1 + Xp / 1000;
+        public int Level => 1 + Xp / XP_PER_LEVEL;
 
         public Character(CharacterBuilder builder)
         {
@@ -58,6 +60,7 @@ namespace Evercraft
             Charisma = new Stat(builder.Charisma);
 
             Damaged = 0;
+           
         }
 
         public Character() : this(new CharacterBuilder())
@@ -88,18 +91,23 @@ namespace Evercraft
             return true;
         }
 
-        public int GetAttackRollModifier()
+        public virtual int GetAttackRollModifier()
         {
             return Strength.Modifier + (Level / 2);
         }
 
-        private int GetDamage(bool crit)
+        protected virtual int GetDamage(bool crit)
         {
             int damage = 1;
             damage += Strength.Modifier;
             damage *= crit ? 2 : 1;
 
             return damage > 0 ? damage : 1;
+        }
+
+        protected virtual int GetHitPointModifier()
+        {
+            return Constitution.Modifier + ((Level - 1) * 5);
         }
     }
 }

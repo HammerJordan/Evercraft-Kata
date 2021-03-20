@@ -3,7 +3,7 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace Evercraft
 {
-    public class CharacterBuilder
+    public class CharacterBuilder 
     {
         public int ArmorClass { get; set; } = 10;
         public int MaxHitPoints { get; set; } = 5;
@@ -16,6 +16,7 @@ namespace Evercraft
         public int Wisdom { get; set; } = 10;
         public int Intelligence { get; set; } = 10;
         public int Charisma { get; set; } = 10;
+        
 
         public CharacterBuilder SetArmorClass(int armorClass)
         {
@@ -44,6 +45,12 @@ namespace Evercraft
         public CharacterBuilder SetXp(int xp)
         {
             Xp = xp;
+            return this;
+        }
+
+        public CharacterBuilder SetLevel(int level)
+        {
+            Xp = (level - 1) * Character.XP_PER_LEVEL;
             return this;
         }
 
@@ -87,6 +94,11 @@ namespace Evercraft
         public static implicit operator Character(CharacterBuilder builder)
         {
             return builder.Build();
+        }
+
+        public FighterCharacter AsFighter()
+        {
+            return new FighterCharacter(this);
         }
     }
 }
