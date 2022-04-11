@@ -100,5 +100,10 @@ namespace Evercraft
         {
             return new FighterCharacter(this);
         }
+
+        public RogueCharacter AsRogue()
+        {
+            return new RogueCharacter(this);
+        }
     }
 }

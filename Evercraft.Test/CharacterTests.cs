@@ -204,5 +204,16 @@ namespace Evercraft.Test
 
             character.GetAttackRollModifier().Should().Be(expectedRollMod);
         }
+
+        [Fact]
+        public void When20OnAttackIsRolled_DamageShouldBeDoubled()
+        {
+            int startHP = enemy.CurrentHitPoints;
+            character.Attack(new DiceRoll(20), enemy);
+            int totalDamageDone = startHP - enemy.CurrentHitPoints;
+
+            totalDamageDone.Should().Be(2);
+
+        }
     }
 }

@@ -98,8 +98,7 @@ namespace Evercraft
 
         protected virtual int GetDamage(bool crit)
         {
-            int damage = 1;
-            damage += Strength.Modifier;
+            int damage = GetAttackRollModifier() + 1;
             damage *= crit ? 2 : 1;
 
             return damage > 0 ? damage : 1;

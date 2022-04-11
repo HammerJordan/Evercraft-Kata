@@ -12,11 +12,6 @@
             return Strength.Modifier + Level;
         }
 
-        protected override int GetDamage(bool crit)
-        {
-            return base.GetDamage(crit);
-        }
-
         protected override int GetHitPointModifier()
         {
             return Constitution.Modifier + ((Level - 1) * 10);
