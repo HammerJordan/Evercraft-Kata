@@ -12,6 +12,8 @@ namespace Evercraft
         protected int armorClass;
         protected int maxHitPoints;
 
+        protected virtual bool IgnoreTargetsDexterity => false;
+
         public string Name { get; set; }
         public AlignmentType Alignment { get; set; }
         public int Xp { get; set; }
@@ -33,7 +35,7 @@ namespace Evercraft
         {
             get => Math.Max(1,
                 maxHitPoints + GetHitPointModifier()
-                );
+            );
             protected set => maxHitPoints = value;
         }
 
@@ -60,16 +62,19 @@ namespace Evercraft
             Charisma = new Stat(builder.Charisma);
 
             Damaged = 0;
-           
         }
 
         public Character() : this(new CharacterBuilder())
         {
         }
 
-        public bool AttackHits(DiceRoll roll)
+        public bool AttackHits(DiceRoll roll, bool ignoreDexterity)
         {
-            return roll.IsNatural20 || roll.Total >= ArmorClass;
+            if (roll.IsNatural20)
+                return true;
+
+            int totalArmor = !ignoreDexterity ? ArmorClass : ArmorClass - Dexterity.Modifier;
+            return roll.Total >= totalArmor;
         }
 
         public void TakeDamage(int amount)
@@ -81,7 +86,7 @@ namespace Evercraft
         {
             roll.Modifiers.Add(GetAttackRollModifier());
 
-            if (!target.AttackHits(roll))
+            if (!target.AttackHits(roll,IgnoreTargetsDexterity))
                 return false;
 
             Xp += XP_GAIN;

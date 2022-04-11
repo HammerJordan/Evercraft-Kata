@@ -30,5 +30,18 @@ namespace Evercraft.Test
 
             damageDone.Should().Be(expectedCrit);
         }
+
+        [Fact]
+        public void IgnoresOpponentsDexterityModifer_ToArmorClassWhenAttacking()
+        {
+            enemy = new CharacterBuilder().SetDexterity(16);
+
+            character.Attack(new DiceRoll(11), enemy);
+
+            enemy.CurrentHitPoints.Should().NotBe(enemy.MaxHitPoints);
+        }
+        
+        
+        
     }
 }

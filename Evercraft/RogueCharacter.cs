@@ -1,9 +1,14 @@
+using System;
+
 namespace Evercraft
 {
     public class RogueCharacter: Character
     {
+        protected override bool IgnoreTargetsDexterity => true;
+
         public RogueCharacter(CharacterBuilder builder) : base(builder)
         {
+
         }
 
         protected override int GetDamage(bool crit)
@@ -12,5 +17,7 @@ namespace Evercraft
 
             return crit ? baseDamage * 3 : baseDamage;
         }
+        
+        
     }
 }
