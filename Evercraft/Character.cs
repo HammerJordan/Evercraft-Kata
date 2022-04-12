@@ -101,7 +101,7 @@ namespace Evercraft
             return Strength.Modifier + (Level / 2);
         }
 
-        protected virtual int GetDamage(bool crit)
+        public virtual int GetDamage(bool crit)
         {
             int damage = GetAttackRollModifier() + 1;
             damage *= crit ? 2 : 1;

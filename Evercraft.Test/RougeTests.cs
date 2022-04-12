@@ -1,5 +1,7 @@
+using System;
 using System.Net.Security;
 using FluentAssertions;
+using NSubstitute.ExceptionExtensions;
 using Xunit;
 
 namespace Evercraft.Test
@@ -39,6 +41,27 @@ namespace Evercraft.Test
             character.Attack(new DiceRoll(11), enemy);
 
             enemy.CurrentHitPoints.Should().NotBe(enemy.MaxHitPoints);
+        }
+
+        [Theory]
+        [InlineData(10,1)]
+        [InlineData(8,1)]
+        [InlineData(1,1)]
+        [InlineData(12,2)]
+        [InlineData(14,3)]
+        [InlineData(20,6)]
+        public void AddsDexterityModifierToAttacks_InsteadOfStrength(int dexterity, int expectedDamage)
+        {
+            character = new CharacterBuilder().SetDexterity(dexterity).AsRogue();
+
+            character.GetDamage(false).Should().Be(expectedDamage);
+        }
+
+        [Fact]
+        public void RogueClassCantHaveGoodAlignment_ThrowsAnExceptionWhenAlignmentIsGood()
+        {
+            Action buildRogue = () => new CharacterBuilder().SetAlignment(AlignmentType.Good).AsRogue();
+            buildRogue.Should().Throw<ArgumentException>();
         }
         
         
