@@ -96,14 +96,19 @@ namespace Evercraft
             return builder.Build();
         }
 
-        public FighterCharacter AsFighter()
+        public Fighter AsFighter()
         {
-            return new FighterCharacter(this);
+            return new Fighter(this);
         }
 
-        public RogueCharacter AsRogue()
+        public Rogue AsRogue()
         {
-            return new RogueCharacter(this);
+            return new Rogue(this);
+        }
+
+        public Monk AsMonk()
+        {
+            return new Monk(this);
         }
     }
 }

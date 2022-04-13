@@ -1,8 +1,8 @@
 ﻿namespace Evercraft
 {
-    public class FighterCharacter : Character
+    public class Fighter : Character
     {
-        public FighterCharacter(CharacterBuilder builder) : base(builder)
+        public Fighter(CharacterBuilder builder) : base(builder)
         {
         }
 

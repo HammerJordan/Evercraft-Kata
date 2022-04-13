@@ -2,11 +2,11 @@ using System;
 
 namespace Evercraft
 {
-    public class RogueCharacter: Character
+    public class Rogue: Character
     {
         protected override bool IgnoreTargetsDexterity => true;
 
-        public RogueCharacter(CharacterBuilder builder) : base(builder)
+        public Rogue(CharacterBuilder builder) : base(builder)
         {
             if (builder.Alignment == AlignmentType.Good)
             {

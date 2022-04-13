@@ -27,7 +27,7 @@ namespace Evercraft
 
         public int ArmorClass
         {
-            get => armorClass + Dexterity.Modifier;
+            get => armorClass + GetArmorClassModifier();
             protected set => armorClass = value;
         }
 
@@ -112,6 +112,11 @@ namespace Evercraft
         protected virtual int GetHitPointModifier()
         {
             return Constitution.Modifier + ((Level - 1) * 5);
+        }
+
+        protected virtual int GetArmorClassModifier()
+        {
+            return Dexterity.Modifier;
         }
     }
 }
